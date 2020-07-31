@@ -1,0 +1,255 @@
+" Plugins {{{1 "
+call plug#begin('~/.vim/plugged')
+" retired plugin
+" Plug 'majutsushi/tagbar'
+
+Plug 'altercation/vim-colors-solarized'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'godlygeek/tabular'
+Plug 'easymotion/vim-easymotion'
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
+Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
+Plug 'liuchengxu/vista.vim'
+
+Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
+Plug 'keith/swift.vim'
+Plug 'rust-lang/rust.vim'
+if has('nvim')
+    Plug 'neovim/nvim-lsp'
+endif
+
+Plug 'honza/vim-snippets'
+Plug 'SirVer/ultisnips'
+
+if !has('nvim')
+    Plug 'roxma/vim-hug-neovim-rpc'
+endif
+Plug 'ncm2/ncm2'
+Plug 'roxma/nvim-yarp'
+Plug 'ncm2/ncm2-bufword'
+Plug 'ncm2/ncm2-path'
+Plug 'ncm2/ncm2-ultisnips'
+
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'Raimondi/delimitMate'
+Plug 'tomtom/tcomment_vim'
+Plug 'terryma/vim-multiple-cursors'
+
+" eyecandy stuff
+" Plug 'bling/vim-airline'
+"Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+
+Plug 'chriskempson/base16-vim'
+Plug 'w0ng/vim-hybrid'
+Plug 'acarapetis/vim-colors-github'
+Plug 'junegunn/seoul256.vim'
+Plug 'sonph/onehalf', {'rtp': 'vim'}
+Plug 'joshdick/onedark.vim'
+
+Plug 'airblade/vim-gitgutter'
+call plug#end()
+" 1}}} "
+
+filetype plugin indent on
+" ----------------------------------------
+" Regular Vim Configuration (No Plugins Needed)
+" ----------------------------------------
+
+" ---------------
+" Color
+" ---------------
+set background=dark
+
+" ---------------
+" Backups
+" ---------------
+set backup
+"set backupdir=~/.vim/backup
+"set directory=~/.vim/tmp
+
+" ---------------
+" UI
+" ---------------
+set ruler  " Ruler on
+"set nu  " Line numbers on
+set nowrap  " Line wrapping off
+set laststatus=2  " Always show the statusline
+set cmdheight=2
+set fileencodings=ucs-bom,utf-8,default,cp936,lantin1
+set encoding=utf-8
+"if has('win32')
+"    set encoding=chinese
+"endif
+
+" ---------------
+" Behaviors
+" ---------------
+syntax enable
+set autoread           " Automatically reload changes if detected
+set wildmenu           " Turn on WiLd menu
+set hidden             " Change buffer - without saving
+set history=768        " Number of things to remember in history.
+set cf                 " Enable error files & error jumping.
+set clipboard+=unnamed " Yanks go on clipboard instead.
+set autowrite          " Writes on make/shell commands
+set timeoutlen=350     " Time to wait for a command (after leader for example)
+set foldlevelstart=99  " Remove folds
+set formatoptions=crql
+
+" ---------------
+" Text Format
+" ---------------
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4  " Tabs under smart indent
+set cindent
+set autoindent
+set smarttab
+set expandtab
+set backspace=2 " Delete everything with backspace
+
+" ---------------
+" Searching
+" ---------------
+"set ignorecase " Case insensitive search
+"set smartcase " Non-case sensitive search
+set incsearch
+set hlsearch
+set wildignore+=*.o,*.obj,*.exe,*.so,*.dll,*.pyc,.svn,.hg,.bzr,.git,.sass-cache
+
+" ---------------
+" Visual
+" ---------------
+set showmatch  " Show matching brackets.
+set matchtime=2 " How many tenths of a second to blink
+
+" ---------------
+" Sounds
+" ---------------
+set noerrorbells
+set novisualbell
+set t_vb=
+
+" ---------------
+" Mouse
+" ---------------
+set mousehide  " Hide mouse after chars typed
+set mouse=a  " Mouse in all modes
+
+" Better complete options to speed it up
+set complete=.,w,b,u,U
+
+au FileType make setl noexpandtab
+augroup c
+  au FileType c setl foldmethod=syntax
+  au FileType c setl textwidth=79
+augroup END
+
+augroup cpp
+  au FileType cpp setl foldmethod=syntax
+  au FileType cpp setl textwidth=79
+augroup END
+
+
+augroup python
+  au!
+  au FileType python setl foldmethod=indent
+  " au FileType python setl omnifunc=pythoncomplete#Complete
+augroup END
+
+" ---------------
+" key mapping
+" ---------------
+vnoremap <silent> <LocalLeader>= yP
+nnoremap <silent> <LocalLeader>= YP
+
+
+map <leader>m :TagbarToggle<cr>
+
+" colorscheme wombat256mod
+" let g:solarized_termcolors=256
+colorscheme onedark 
+let g:lightline = {
+      \ 'colorscheme': 'onedark',
+      \ }
+
+function! SemanticNaviMapping(lsp) abort
+    if a:lsp == 'nvim-lsp'
+        nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
+        nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+        nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
+        nnoremap <silent> gD    <cmd>lua vim.lsp.buf.implementation()<CR>
+        nnoremap <silent> <c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
+        nnoremap <silent> 1gD   <cmd>lua vim.lsp.buf.type_definition()<CR>
+        nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
+        nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
+        nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+    endif
+endfunction
+
+lua << EOF
+local function config_nvim_lsp(cb_init)
+    local nvim_lsp = require'nvim_lsp'
+    nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; on_init = cb_init }
+    nvim_lsp.rust_analyzer.setup{ on_init = cb_init }
+    nvim_lsp.pyls.setup{ on_init = cb_init }
+    if vim.call('has', 'mac') == 1 then
+        nvim_lsp.clangd.setup{ cmd = {"/usr/local/opt/llvm/bin/clangd", "--background-index"}; on_init = cb_init }
+    else
+        nvim_lsp.clangd.setup{ on_init = cb_init }
+    end
+end
+
+if vim.call('has', 'nvim') == 1 then
+    config_nvim_lsp(
+        function(client, result)
+            require'ncm2'.register_lsp_source(client, result)
+            vim.call('SemanticNaviMapping', 'nvim-lsp')
+        end
+    )
+end
+EOF
+
+autocmd BufEnter * call ncm2#enable_for_buffer()
+set completeopt=noinsert,menuone,noselect
+" We don't really want UltiSnips to map these two, but there's no option for
+" that so just make it map them to a <Plug> key.
+let g:UltiSnipsExpandTrigger       = "<Plug>(ultisnips_expand_or_jump)"
+let g:UltiSnipsJumpForwardTrigger  = "<Plug>(ultisnips_expand_or_jump)"
+
+" Let UltiSnips bind the jump backward trigger as there's nothing special
+" about it.
+let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
+let g:UltiSnipsRemoveSelectModeMappings = 0
+let g:UltiSnipsEditSplit = 'context'
+
+" Try expanding snippet or jumping with UltiSnips and return <Tab> if nothing
+" worked.
+function! UniversalJumpForwardOrTab()
+  call UltiSnips#JumpForwards()
+  if g:ulti_jump_forwards_res > 0
+    return ""
+  elseif delimitMate#ShouldJump()
+    return delimitMate#JumpAny()
+  else
+    return "\<Tab>"
+  endif
+endfunction
+
+" what i expected is <CR> only try to expand when popup menu is visible
+" otherwise a newline is inserted.
+" when popup menu show up, if no item selected, insert <CR>. otherwise insert
+" selected item and expand it if possible. I don't want to insert <CR> if the
+" slelected item can't be expanded, because <CR> just represent selection not
+" a insertion.
+inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : ncm2_ultisnips#expand_or("\<Plug>(ultisnips_try_jump_forwards)")
+inoremap <silent> <Plug>(ultisnips_try_jump_forwards) <C-R>=UniversalJumpForwardOrTab()<CR>
+inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
+" Select mode mapping for jumping forward with <Tab>.
+snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
+
