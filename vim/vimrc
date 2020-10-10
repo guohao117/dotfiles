@@ -54,10 +54,6 @@ call plug#end()
 " 1}}} "
 
 filetype plugin indent on
-" ----------------------------------------
-" Regular Vim Configuration (No Plugins Needed)
-" ----------------------------------------
-
 " ---------------
 " Color
 " ---------------
@@ -67,37 +63,12 @@ set background=dark
 " Backups
 " ---------------
 set backup
-"set backupdir=~/.vim/backup
-"set directory=~/.vim/tmp
 
 " ---------------
 " UI
 " ---------------
-set ruler  " Ruler on
-"set nu  " Line numbers on
-set nowrap  " Line wrapping off
 set laststatus=2  " Always show the statusline
 set cmdheight=2
-set fileencodings=ucs-bom,utf-8,default,cp936,lantin1
-set encoding=utf-8
-"if has('win32')
-"    set encoding=chinese
-"endif
-
-" ---------------
-" Behaviors
-" ---------------
-syntax enable
-set autoread           " Automatically reload changes if detected
-set wildmenu           " Turn on WiLd menu
-set hidden             " Change buffer - without saving
-set history=768        " Number of things to remember in history.
-set cf                 " Enable error files & error jumping.
-set clipboard+=unnamed " Yanks go on clipboard instead.
-set autowrite          " Writes on make/shell commands
-set timeoutlen=350     " Time to wait for a command (after leader for example)
-set foldlevelstart=99  " Remove folds
-set formatoptions=crql
 
 " ---------------
 " Text Format
@@ -111,53 +82,24 @@ set smarttab
 set expandtab
 set backspace=2 " Delete everything with backspace
 
-" ---------------
-" Searching
-" ---------------
-"set ignorecase " Case insensitive search
-"set smartcase " Non-case sensitive search
-set incsearch
-set hlsearch
-set wildignore+=*.o,*.obj,*.exe,*.so,*.dll,*.pyc,.svn,.hg,.bzr,.git,.sass-cache
-
-" ---------------
-" Visual
-" ---------------
-set showmatch  " Show matching brackets.
-set matchtime=2 " How many tenths of a second to blink
-
-" ---------------
-" Sounds
-" ---------------
-set noerrorbells
-set novisualbell
-set t_vb=
-
-" ---------------
-" Mouse
-" ---------------
-set mousehide  " Hide mouse after chars typed
-set mouse=a  " Mouse in all modes
-
-" Better complete options to speed it up
-set complete=.,w,b,u,U
-
 au FileType make setl noexpandtab
 augroup c
   au FileType c setl foldmethod=syntax
   au FileType c setl textwidth=79
+  au FileType c setl foldlevel=999
 augroup END
 
 augroup cpp
   au FileType cpp setl foldmethod=syntax
   au FileType cpp setl textwidth=79
+  au FileType cpp setl foldlevel=999
 augroup END
 
 
 augroup python
   au!
   au FileType python setl foldmethod=indent
-  " au FileType python setl omnifunc=pythoncomplete#Complete
+  au FileType python setl foldlevel=999
 augroup END
 
 " ---------------
@@ -167,10 +109,14 @@ vnoremap <silent> <LocalLeader>= yP
 nnoremap <silent> <LocalLeader>= YP
 
 
-map <leader>m :TagbarToggle<cr>
+map <leader>m :Vista<cr>
 
 " colorscheme wombat256mod
 " let g:solarized_termcolors=256
+if has('termguicolors') && $COLORTERM ==? "truecolor"
+set termguicolors
+endif
+
 colorscheme onedark 
 let g:lightline = {
       \ 'colorscheme': 'onedark',
@@ -190,6 +136,7 @@ function! SemanticNaviMapping(lsp) abort
     endif
 endfunction
 
+if has('nvim')
 lua << EOF
 local function config_nvim_lsp(cb_init)
     local nvim_lsp = require'nvim_lsp'
@@ -212,9 +159,10 @@ if vim.call('has', 'nvim') == 1 then
     )
 end
 EOF
+endif
 
-autocmd BufEnter * call ncm2#enable_for_buffer()
 set completeopt=noinsert,menuone,noselect
+autocmd BufEnter * call ncm2#enable_for_buffer()
 " We don't really want UltiSnips to map these two, but there's no option for
 " that so just make it map them to a <Plug> key.
 let g:UltiSnipsExpandTrigger       = "<Plug>(ultisnips_expand_or_jump)"
@@ -226,7 +174,7 @@ let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
 let g:UltiSnipsRemoveSelectModeMappings = 0
 let g:UltiSnipsEditSplit = 'context'
 
-" Try expanding snippet or jumping with UltiSnips and return <Tab> if nothing
+" Try expanding snippet or jumping with UltiSnips/delimitMate and return <Tab> if nothing
 " worked.
 function! UniversalJumpForwardOrTab()
   call UltiSnips#JumpForwards()
