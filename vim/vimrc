@@ -1,7 +1,15 @@
 " Plugins {{{1 "
-call plug#begin('~/.vim/plugged')
+if has('nvim')
+    let plugdata = stdpath('data') . '/plugged'
+else
+    let plugdata = '~/.vim' . '/plugged'
+endif
+call plug#begin(plugdata)
 " retired plugin
 " Plug 'majutsushi/tagbar'
+" Plug 'bling/vim-airline'
+" Plug 'vim-airline/vim-airline-themes'
+" Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
 
 Plug 'altercation/vim-colors-solarized'
 Plug 'tpope/vim-fugitive'
@@ -12,8 +20,6 @@ Plug 'easymotion/vim-easymotion'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
 Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
 Plug 'liuchengxu/vista.vim'
-
-Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
 Plug 'keith/swift.vim'
 Plug 'rust-lang/rust.vim'
 if has('nvim')
@@ -38,27 +44,22 @@ Plug 'tomtom/tcomment_vim'
 Plug 'terryma/vim-multiple-cursors'
 
 " eyecandy stuff
-" Plug 'bling/vim-airline'
-"Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
 
+" colorschemes
 Plug 'chriskempson/base16-vim'
 Plug 'w0ng/vim-hybrid'
 Plug 'acarapetis/vim-colors-github'
 Plug 'junegunn/seoul256.vim'
 Plug 'sonph/onehalf', {'rtp': 'vim'}
-Plug 'joshdick/onedark.vim'
+Plug 'rakr/vim-one'
+" Plug 'joshdick/onedark.vim'
 
 Plug 'airblade/vim-gitgutter'
 call plug#end()
 " 1}}} "
 
 filetype plugin indent on
-" ---------------
-" Color
-" ---------------
-set background=dark
-
 " ---------------
 " Backups
 " ---------------
@@ -111,16 +112,24 @@ nnoremap <silent> <LocalLeader>= YP
 
 map <leader>m :Vista<cr>
 
-" colorscheme wombat256mod
-" let g:solarized_termcolors=256
 if has('termguicolors') && $COLORTERM ==? "truecolor"
 set termguicolors
 endif
 
-colorscheme onedark 
 let g:lightline = {
-      \ 'colorscheme': 'onedark',
+      \ 'colorscheme': 'one',
       \ }
+
+augroup UI
+    au!
+    autocmd OptionSet background
+                \ colorscheme one | execute 'source' globpath(&rtp, 'autoload/lightline/colorscheme/one.vim')
+                \ | call lightline#colorscheme() | call lightline#update()
+augroup END
+
+if !empty($TMUX)
+    set bg=light
+endif
 
 function! SemanticNaviMapping(lsp) abort
     if a:lsp == 'nvim-lsp'
