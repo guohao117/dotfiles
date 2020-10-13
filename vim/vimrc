@@ -109,9 +109,6 @@ augroup END
 vnoremap <silent> <LocalLeader>= yP
 nnoremap <silent> <LocalLeader>= YP
 
-
-map <leader>m :Vista<cr>
-
 if has('termguicolors') && $COLORTERM ==? "truecolor"
 set termguicolors
 endif
@@ -133,15 +130,15 @@ endif
 
 function! SemanticNaviMapping(lsp) abort
     if a:lsp == 'nvim-lsp'
-        nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
-        nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
-        nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
-        nnoremap <silent> gD    <cmd>lua vim.lsp.buf.implementation()<CR>
-        nnoremap <silent> <c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
-        nnoremap <silent> 1gD   <cmd>lua vim.lsp.buf.type_definition()<CR>
-        nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
-        nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
-        nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+        nnoremap <silent> <Leader>gd    <cmd>lua vim.lsp.buf.declaration()<CR>
+        nnoremap <silent> <Leader><c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+        nnoremap <silent> <Leader>K     <cmd>lua vim.lsp.buf.hover()<CR>
+        nnoremap <silent> <Leader>gD    <cmd>lua vim.lsp.buf.implementation()<CR>
+        nnoremap <silent> <Leader><c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
+        nnoremap <silent> <Leader>1gD   <cmd>lua vim.lsp.buf.type_definition()<CR>
+        nnoremap <silent> <Leader>gr    <cmd>lua vim.lsp.buf.references()<CR>
+        nnoremap <silent> <Leader>g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
+        nnoremap <silent> <Leader>gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
     endif
 endfunction
 
@@ -203,9 +200,25 @@ endfunction
 " slelected item can't be expanded, because <CR> just represent selection not
 " a insertion.
 inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : ncm2_ultisnips#expand_or("\<Plug>(ultisnips_try_jump_forwards)")
+" i_CTRL-R_= insert expr result
 inoremap <silent> <Plug>(ultisnips_try_jump_forwards) <C-R>=UniversalJumpForwardOrTab()<CR>
 inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
 " Select mode mapping for jumping forward with <Tab>.
 snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
+
+let g:vista#renderer#enable_icon = 1
+
+function! VistaLSPorCtags()
+  if luaeval('not vim.tbl_isempty(vim.lsp.buf_get_clients(0))')
+    echom 'lsp'
+    execute 'Vista nvim_lsp'
+  else
+    echom 'ctags'
+    execute 'Vista' 
+  endif
+endfunction
+
+nnoremap <silent> <expr> <leader>m VistaLSPorCtags()
+
 
