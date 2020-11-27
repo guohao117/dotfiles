@@ -23,7 +23,7 @@ Plug 'liuchengxu/vista.vim'
 Plug 'keith/swift.vim'
 Plug 'rust-lang/rust.vim'
 if has('nvim')
-    Plug 'neovim/nvim-lsp'
+    Plug 'neovim/nvim-lspconfig'
 endif
 
 Plug 'honza/vim-snippets'
@@ -39,6 +39,7 @@ Plug 'ncm2/ncm2-path'
 Plug 'ncm2/ncm2-ultisnips'
 
 Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
 Plug 'Raimondi/delimitMate'
 Plug 'tomtom/tcomment_vim'
 Plug 'terryma/vim-multiple-cursors'
@@ -85,12 +86,14 @@ set backspace=2 " Delete everything with backspace
 
 au FileType make setl noexpandtab
 augroup c
+  au!
   au FileType c setl foldmethod=syntax
   au FileType c setl textwidth=79
   au FileType c setl foldlevel=999
 augroup END
 
 augroup cpp
+  au!
   au FileType cpp setl foldmethod=syntax
   au FileType cpp setl textwidth=79
   au FileType cpp setl foldlevel=999
@@ -117,11 +120,25 @@ let g:lightline = {
       \ 'colorscheme': 'one',
       \ }
 
+function! SetColorSchemeDeferred(timer)
+    colorscheme one
+endfunction
+
+augroup TUI_Enter
+    au!
+    autocmd VimEnter * ++nested call timer_start(50, 'SetColorSchemeDeferred', {'repeat': 1})
+augroup END
+
+function! UpdateLightLine()
+    execute 'source' globpath(&rtp, printf('autoload/lightline/colorscheme/%s.vim', g:lightline['colorscheme']))
+    call lightline#colorscheme()
+    call lightline#update()
+endfunction
+
+
 augroup UI
     au!
-    autocmd OptionSet background
-                \ colorscheme one | execute 'source' globpath(&rtp, 'autoload/lightline/colorscheme/one.vim')
-                \ | call lightline#colorscheme() | call lightline#update()
+    autocmd OptionSet background call UpdateLightLine()
 augroup END
 
 if !empty($TMUX)
@@ -145,7 +162,7 @@ endfunction
 if has('nvim')
 lua << EOF
 local function config_nvim_lsp(cb_init)
-    local nvim_lsp = require'nvim_lsp'
+    local nvim_lsp = require'lspconfig'
     nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; on_init = cb_init }
     nvim_lsp.rust_analyzer.setup{ on_init = cb_init }
     nvim_lsp.pyls.setup{ on_init = cb_init }
