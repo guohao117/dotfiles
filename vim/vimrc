@@ -40,6 +40,7 @@ Plug 'ncm2/ncm2-ultisnips'
 
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+Plug 'jremmen/vim-ripgrep'
 Plug 'Raimondi/delimitMate'
 Plug 'tomtom/tcomment_vim'
 Plug 'terryma/vim-multiple-cursors'
@@ -163,13 +164,13 @@ if has('nvim')
 lua << EOF
 local function config_nvim_lsp(cb_init)
     local nvim_lsp = require'lspconfig'
-    nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; on_init = cb_init }
-    nvim_lsp.rust_analyzer.setup{ on_init = cb_init }
-    nvim_lsp.pyls.setup{ on_init = cb_init }
+    nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; on_attach = cb_init }
+    nvim_lsp.rust_analyzer.setup{ on_attach = cb_init }
+    nvim_lsp.pyls.setup{ on_attach = cb_init }
     if vim.call('has', 'mac') == 1 then
-        nvim_lsp.clangd.setup{ cmd = {"/usr/local/opt/llvm/bin/clangd", "--background-index"}; on_init = cb_init }
+        nvim_lsp.clangd.setup{ cmd = {"/usr/local/opt/llvm/bin/clangd", "--background-index"}; on_attach = cb_init }
     else
-        nvim_lsp.clangd.setup{ on_init = cb_init }
+        nvim_lsp.clangd.setup{ on_attach = cb_init }
     end
 end
 
