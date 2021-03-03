@@ -24,13 +24,15 @@ Plug 'keith/swift.vim'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
 if has('nvim')
-    Plug 'neovim/nvim-lspconfig'
+ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+ Plug 'neovim/nvim-lspconfig'
 endif
 
 Plug 'honza/vim-snippets'
 Plug 'SirVer/ultisnips'
 
 if !has('nvim')
+    set pyxversion=3
     Plug 'roxma/vim-hug-neovim-rpc'
 endif
 Plug 'ncm2/ncm2'
@@ -87,32 +89,24 @@ set expandtab
 set backspace=2 " Delete everything with backspace
 
 au FileType make setl noexpandtab
-augroup c
-  au!
-  au FileType c setl foldmethod=syntax
-  au FileType c setl textwidth=79
-  au FileType c setl foldlevel=999
-augroup END
-
-augroup cpp
-  au!
-  au FileType cpp setl foldmethod=syntax
-  au FileType cpp setl textwidth=79
-  au FileType cpp setl foldlevel=999
-augroup END
-
-
-augroup python
-  au!
-  au FileType python setl foldmethod=indent
-  au FileType python setl foldlevel=999
-augroup END
-
-" ---------------
-" key mapping
-" ---------------
-vnoremap <silent> <LocalLeader>= yP
-nnoremap <silent> <LocalLeader>= YP
+" augroup c
+"   au!
+"   au FileType c setl foldmethod=syntax
+"   au FileType c setl textwidth=79
+"   au FileType c setl foldlevel=999
+" augroup END
+"
+" augroup cpp
+"   au!
+"   au FileType cpp setl textwidth=79
+"   au FileType cpp setl foldlevel=999
+" augroup END
+"
+" augroup python
+"   au!
+"   au FileType python setl foldmethod=indent
+"   au FileType python setl foldlevel=999
+" augroup END
 
 if has('termguicolors') && $COLORTERM ==? "truecolor"
 set termguicolors
@@ -223,8 +217,21 @@ if vim.call('has', 'nvim') == 1 then
             end
         end
     )
+    require'nvim-treesitter.configs'.setup {
+      ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+      highlight = {
+        enable = true,              -- false will disable the whole extension
+        disable = { },  -- list of language that will be disabled
+      },
+      indent = {
+        enable = true,
+      },
+    }
 end
+
 EOF
+set foldmethod=expr
+set foldexpr=nvim_treesitter#foldexpr()
 endif
 
 set completeopt=noinsert,menuone,noselect
