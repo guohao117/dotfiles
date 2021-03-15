@@ -1,0 +1,9 @@
+# put shell settings which may changed by manual here not the .zshenv.
+# .zshenv will override these settings, if you start a new 'not-login-shell' or script.
+export https_proxy=http://127.0.0.1:6152
+export http_proxy=http://127.0.0.1:6152
+export all_proxy=socks5://127.0.0.1:6153
+export no_proxy="127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,100.64.0.0/1,17.0.0.0/8,localhost,.local,.crashlytics.com"
+export GOPATH=/Users/guohao/Workspaces/development/go
+export PATH=$HOME/.local/bin:$HOME/Library/Python/3.8/bin:$HOME/Library/Python/3.7/bin:$GOPATH/bin:$PATH
+export PATH="$HOME/.cargo/bin:$PATH"

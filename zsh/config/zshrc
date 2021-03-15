@@ -1,0 +1,22 @@
+# Customize to your needs...
+alias vim=nvim
+alias wget="curl -O --retry 999 --retry-max-time 0 -C -"
+
+# load zgen
+source "${HOME}/.zgen/zgen.zsh"
+
+if ! zgen saved; then
+    zgen loadall <<EOPLUGINS
+    zsh-users/zsh-history-substring-search
+    zdharma/fast-syntax-highlighting
+    zsh-users/zsh-autosuggestions
+EOPLUGINS
+    zgen load zsh-users/zsh-completions src
+    zgen save
+fi
+
+# substring search keys
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+eval "$(starship init zsh)"
+
