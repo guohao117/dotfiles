@@ -11,7 +11,6 @@ call plug#begin(plugdata)
 " Plug 'vim-airline/vim-airline-themes'
 " Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
 
-Plug 'altercation/vim-colors-solarized'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
@@ -24,8 +23,14 @@ Plug 'keith/swift.vim'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
 if has('nvim')
- Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
- Plug 'neovim/nvim-lspconfig'
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+    Plug 'neovim/nvim-lspconfig'
+    Plug 'nvim-lua/popup.nvim'
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-telescope/telescope.nvim'
+else
+    Plug 'junegunn/fzf'
+    Plug 'junegunn/fzf.vim'
 endif
 
 Plug 'honza/vim-snippets'
@@ -37,30 +42,32 @@ if !has('nvim')
 endif
 Plug 'ncm2/ncm2'
 Plug 'roxma/nvim-yarp'
+Plug 'ncm2/float-preview.nvim'
 Plug 'ncm2/ncm2-bufword'
 Plug 'ncm2/ncm2-path'
 Plug 'ncm2/ncm2-ultisnips'
 
-Plug 'junegunn/fzf'
-Plug 'junegunn/fzf.vim'
 Plug 'jremmen/vim-ripgrep'
 Plug 'Raimondi/delimitMate'
 Plug 'tomtom/tcomment_vim'
-Plug 'terryma/vim-multiple-cursors'
+Plug 'mg979/vim-visual-multi', {'branch': 'master'}
 
 " eyecandy stuff
 Plug 'itchyny/lightline.vim'
 
 " colorschemes
 Plug 'chriskempson/base16-vim'
+Plug 'altercation/vim-colors-solarized'
 Plug 'w0ng/vim-hybrid'
 Plug 'acarapetis/vim-colors-github'
 Plug 'junegunn/seoul256.vim'
 Plug 'sonph/onehalf', {'rtp': 'vim'}
 Plug 'rakr/vim-one'
+Plug 'dracula/vim', { 'as': 'dracula' }
 " Plug 'joshdick/onedark.vim'
 
 Plug 'airblade/vim-gitgutter'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 call plug#end()
 " 1}}} "
 
@@ -114,14 +121,22 @@ endif
 
 let g:lightline = {
       \ 'colorscheme': 'one',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'readonly', 'filename', 'modified', 'method' ] ]
+      \ },
+      \ 'component_function': {
+      \   'method': 'nvim_treesitter#statusline'
+      \ },
       \ }
 
 function! SetColorSchemeDeferred(timer)
-    if &bg ==? "dark"
-        colorscheme onehalfdark
-    else
-        colorscheme onehalflight
-    endif
+    " if &bg ==? "dark"
+    "     colorscheme onehalfdark
+    " else
+    "     colorscheme onehalflight
+    " endif
+    colorscheme one
 endfunction
 
 augroup TUI_Enter
@@ -129,7 +144,7 @@ augroup TUI_Enter
     autocmd VimEnter * ++nested call timer_start(50, 'SetColorSchemeDeferred', {'repeat': 1})
 augroup END
 
-function! UpdateLightLine()
+function! UpdateLightline()
     execute 'source' globpath(&rtp, printf('autoload/lightline/colorscheme/%s.vim', g:lightline['colorscheme']))
     call lightline#colorscheme()
     call lightline#update()
@@ -138,11 +153,11 @@ endfunction
 
 augroup UI
     au!
-    autocmd OptionSet background call UpdateLightLine()
+    autocmd OptionSet background call UpdateLightline()
 augroup END
 
 if !empty($TMUX)
-    set bg=light
+    set bg=dark
 endif
 
 function! SemanticNaviMapping(lsp) abort
@@ -217,8 +232,23 @@ if vim.call('has', 'nvim') == 1 then
             end
         end
     )
+    local lang_list = {
+        'clojure',
+        'rust',
+        'toml',
+        'jsonc',
+        'python',
+        'bash',
+        'java',
+        'json',
+        'lua',
+        'c_sharp',
+        'cpp',
+        'go',
+        'ruby',
+    }
     require'nvim-treesitter.configs'.setup {
-      ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+      ensure_installed = lang_list, -- one of "all", "maintained" (parsers with maintainers), or a list of languages
       highlight = {
         enable = true,              -- false will disable the whole extension
         disable = { },  -- list of language that will be disabled
@@ -233,6 +263,8 @@ EOF
 set foldmethod=expr
 set foldexpr=nvim_treesitter#foldexpr()
 endif
+
+set foldlevel=4
 
 set completeopt=noinsert,menuone,noselect
 autocmd BufEnter * call ncm2#enable_for_buffer()
@@ -274,7 +306,7 @@ inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:co
 " Select mode mapping for jumping forward with <Tab>.
 snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
 
-let g:vista#renderer#enable_icon = 1
+let g:vista#renderer#enable_icon = 0
 
 function! VistaLSPorCtags()
   if luaeval('not vim.tbl_isempty(vim.lsp.buf_get_clients(0))')
@@ -287,9 +319,16 @@ function! VistaLSPorCtags()
 endfunction
 
 nnoremap <silent> <expr> <leader>m VistaLSPorCtags()
-nnoremap <silent> <C-p> <Esc>:Files<cr>
+" nnoremap <silent> <C-p> <Esc>:Files<cr>
+nnoremap <leader>ff <cmd>Telescope find_files<cr>
+nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+nnoremap <leader>fb <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
 if has('win32')
     nnoremap <C-z> <Nop>
 endif
+set mouse=a
 
+" gui
+autocmd UIEnter * set guifont=PragmataPro\ Liga
