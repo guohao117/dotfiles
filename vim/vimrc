@@ -10,6 +10,9 @@ call plug#begin(plugdata)
 " Plug 'bling/vim-airline'
 " Plug 'vim-airline/vim-airline-themes'
 " Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
+" Plug 'norcalli/snippets.nvim'
+" Plug 'nvim-lua/completion-nvim'
+" Plug 'steelsojka/completion-buffers'
 
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-repeat'
@@ -28,24 +31,21 @@ if has('nvim')
     Plug 'nvim-lua/popup.nvim'
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
+    Plug 'hrsh7th/nvim-compe'
+    Plug 'L3MON4D3/LuaSnip'
 else
+    Plug 'honza/vim-snippets'
+    Plug 'SirVer/ultisnips'
+    Plug 'ncm2/ncm2'
+    Plug 'roxma/vim-hug-neovim-rpc'
+    Plug 'roxma/nvim-yarp'
+    Plug 'ncm2/float-preview.nvim'
+    Plug 'ncm2/ncm2-bufword'
+    Plug 'ncm2/ncm2-path'
+    Plug 'ncm2/ncm2-ultisnips'
     Plug 'junegunn/fzf'
     Plug 'junegunn/fzf.vim'
 endif
-
-Plug 'honza/vim-snippets'
-Plug 'SirVer/ultisnips'
-
-if !has('nvim')
-    set pyxversion=3
-    Plug 'roxma/vim-hug-neovim-rpc'
-endif
-Plug 'ncm2/ncm2'
-Plug 'roxma/nvim-yarp'
-Plug 'ncm2/float-preview.nvim'
-Plug 'ncm2/ncm2-bufword'
-Plug 'ncm2/ncm2-path'
-Plug 'ncm2/ncm2-ultisnips'
 
 Plug 'jremmen/vim-ripgrep'
 Plug 'Raimondi/delimitMate'
@@ -63,7 +63,7 @@ Plug 'acarapetis/vim-colors-github'
 Plug 'junegunn/seoul256.vim'
 Plug 'sonph/onehalf', {'rtp': 'vim'}
 Plug 'rakr/vim-one'
-Plug 'dracula/vim', { 'as': 'dracula' }
+Plug 'guohao117/vim-dracula', { 'as': 'dracula' }
 " Plug 'joshdick/onedark.vim'
 
 Plug 'airblade/vim-gitgutter'
@@ -115,12 +115,17 @@ au FileType make setl noexpandtab
 "   au FileType python setl foldlevel=999
 " augroup END
 
+augroup go
+    au!
+    setl noexpandtab
+augroup end
+
 if has('termguicolors') && $COLORTERM ==? "truecolor"
 set termguicolors
 endif
 
 let g:lightline = {
-      \ 'colorscheme': 'one',
+      \ 'colorscheme': 'dracula',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'readonly', 'filename', 'modified', 'method' ] ]
@@ -136,7 +141,8 @@ function! SetColorSchemeDeferred(timer)
     " else
     "     colorscheme onehalflight
     " endif
-    colorscheme one
+    colorscheme dracula
+    call UpdateLightline()
 endfunction
 
 augroup TUI_Enter
@@ -180,9 +186,16 @@ local function config_nvim_lsp(cb_init)
     local nvim_lsp = require'lspconfig'
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
+	capabilities.textDocument.completion.completionItem.resolveSupport = {
+		properties = {
+			'documentation',
+			'detail',
+			'additionalTextEdits',
+			}
+		}
     nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; capabilities = capabilities; on_attach = cb_init }
     nvim_lsp.rust_analyzer.setup{ capabilities = capabilities, capabilities = capabilities; on_attach = cb_init }
-    nvim_lsp.pyls.setup{ capabilities = capabilities; on_attach = cb_init }
+    nvim_lsp.jedi_language_server.setup{ capabilities = capabilities; on_attach = cb_init }
     if vim.call('has', 'mac') == 1 then
         nvim_lsp.clangd.setup{ cmd = {"/usr/local/opt/llvm/bin/clangd", "--background-index"}; capabilities = capabilities; on_attach = cb_init }
     else
@@ -194,7 +207,7 @@ if vim.call('has', 'nvim') == 1 then
     config_nvim_lsp(
         function(client, result)
             local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-            require'ncm2'.register_lsp_source(client, result)
+            -- require'ncm2'.register_lsp_source(client, result)
             local opts = { noremap=true, silent=true }
             buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
             buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
@@ -267,29 +280,69 @@ endif
 set foldlevel=4
 
 set completeopt=noinsert,menuone,noselect
-autocmd BufEnter * call ncm2#enable_for_buffer()
-" We don't really want UltiSnips to map these two, but there's no option for
-" that so just make it map them to a <Plug> key.
-let g:UltiSnipsExpandTrigger       = "<Plug>(ultisnips_expand_or_jump)"
-let g:UltiSnipsJumpForwardTrigger  = "<Plug>(ultisnips_expand_or_jump)"
+if has('nvim')
+    let g:compe = {}
+    let g:compe.enabled = v:true
+    let g:compe.autocomplete = v:true
+    let g:compe.debug = v:false
+    let g:compe.min_length = 1
+    let g:compe.preselect = 'enable'
+    let g:compe.throttle_time = 80
+    let g:compe.source_timeout = 200
+    let g:compe.resolve_timeout = 800
+    let g:compe.incomplete_delay = 400
+    let g:compe.max_abbr_width = 100
+    let g:compe.max_kind_width = 100
+    let g:compe.max_menu_width = 100
+    let g:compe.documentation = v:true
 
-" Let UltiSnips bind the jump backward trigger as there's nothing special
-" about it.
-let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
-let g:UltiSnipsRemoveSelectModeMappings = 0
-let g:UltiSnipsEditSplit = 'context'
+    let g:compe.source = {}
+    let g:compe.source.path = v:true
+    let g:compe.source.buffer = v:true
+    let g:compe.source.calc = v:true
+    let g:compe.source.nvim_lsp = v:true
+    let g:compe.source.nvim_lua = v:true
+    let g:compe.source.vsnip = v:false
+    let g:compe.source.ultisnips = v:false
+    let g:compe.source.luasnip = v:true
+    let g:compe.source.emoji = v:false
+else
+    autocmd BufEnter * call ncm2#enable_for_buffer()
+    " We don't really want UltiSnips to map these two, but there's no option for
+    " that so just make it map them to a <Plug> key.
+    let g:UltiSnipsExpandTrigger       = "<Plug>(ultisnips_expand_or_jump)"
+    let g:UltiSnipsJumpForwardTrigger  = "<Plug>(ultisnips_expand_or_jump)"
+
+    " Let UltiSnips bind the jump backward trigger as there's nothing special
+    " about it.
+    let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
+    let g:UltiSnipsRemoveSelectModeMappings = 0
+    let g:UltiSnipsEditSplit = 'context'
+endif
 
 " Try expanding snippet or jumping with UltiSnips/delimitMate and return <Tab> if nothing
 " worked.
 function! UniversalJumpForwardOrTab()
-  call UltiSnips#JumpForwards()
-  if g:ulti_jump_forwards_res > 0
-    return ""
-  elseif delimitMate#ShouldJump()
-    return delimitMate#JumpAny()
-  else
-    return "\<Tab>"
-  endif
+    if v:lua.require'luasnip'.expand_or_jump()
+        return ""
+    elseif delimitMate#ShouldJump()
+        return delimitMate#JumpAny()
+    else
+        return "\<Tab>"
+    endif
+endfunction
+
+function! MyExpandOr(...)
+    if !pumvisible()
+        call call('feedkeys', a:000)
+        return ""
+    endif
+    if v:lua.require'luasnip'.expand_or_jump()
+        return ""
+    else
+        call call('feedkeys', a:000)
+        return ''
+    endif
 endfunction
 
 " what i expected is <CR> only try to expand when popup menu is visible
@@ -298,13 +351,22 @@ endfunction
 " selected item and expand it if possible. I don't want to insert <CR> if the
 " slelected item can't be expanded, because <CR> just represent selection not
 " a insertion.
-inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : ncm2_ultisnips#expand_or("\<Plug>(ultisnips_try_jump_forwards)")
-" i_CTRL-R_= insert expr result
-inoremap <silent> <Plug>(ultisnips_try_jump_forwards) <C-R>=UniversalJumpForwardOrTab()<CR>
-inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
-" Select mode mapping for jumping forward with <Tab>.
-snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
+if has('nvim')
+    inoremap <silent> <Plug>(my_jump_forward) <C-r>=UniversalJumpForwardOrTab()<CR>
+    inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : MyExpandOr("\<Plug>(my_jump_forward)")
+    inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+    " inoremap <silent> <expr> <CR> pumvisible() ? MyExpandOr(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
+    inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+    inoremap <silent><expr> <CR>      compe#confirm('<CR>')
+else
+    inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : ncm2_ultisnips#expand_or("\<Plug>(ultisnips_try_jump_forwards)")
+    " i_CTRL-R_= insert expr result
+    inoremap <silent> <Plug>(ultisnips_try_jump_forwards) <C-r>=UniversalJumpForwardOrTab()<CR>
+    inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+    inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
+    " Select mode mapping for jumping forward with <Tab>.
+    snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
+endif
 
 let g:vista#renderer#enable_icon = 0
 
