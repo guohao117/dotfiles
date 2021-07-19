@@ -14,20 +14,30 @@ call plug#begin(plugdata)
 " Plug 'nvim-lua/completion-nvim'
 " Plug 'steelsojka/completion-buffers'
 
+" 3rd utilities
 Plug 'tpope/vim-fugitive'
+Plug 'jremmen/vim-ripgrep'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+
+" editing plugins
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'godlygeek/tabular'
 Plug 'easymotion/vim-easymotion'
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
-Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
-Plug 'liuchengxu/vista.vim'
+Plug 'Raimondi/delimitMate'
+Plug 'tomtom/tcomment_vim'
+Plug 'mg979/vim-visual-multi', {'branch': 'master'}
+
+" langues
 Plug 'keith/swift.vim'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
+
+" advanced plugins
 if has('nvim')
     Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
     Plug 'neovim/nvim-lspconfig'
+    Plug 'glepnir/lspsaga.nvim'
     Plug 'nvim-lua/popup.nvim'
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
@@ -47,13 +57,12 @@ else
     Plug 'junegunn/fzf.vim'
 endif
 
-Plug 'jremmen/vim-ripgrep'
-Plug 'Raimondi/delimitMate'
-Plug 'tomtom/tcomment_vim'
-Plug 'mg979/vim-visual-multi', {'branch': 'master'}
-
-" eyecandy stuff
+" widgets
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
+Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
+Plug 'liuchengxu/vista.vim'
 Plug 'itchyny/lightline.vim'
+Plug 'airblade/vim-gitgutter'
 
 " colorschemes
 Plug 'chriskempson/base16-vim'
@@ -66,8 +75,6 @@ Plug 'rakr/vim-one'
 Plug 'guohao117/vim-dracula', { 'as': 'dracula' }
 " Plug 'joshdick/onedark.vim'
 
-Plug 'airblade/vim-gitgutter'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 call plug#end()
 " 1}}} "
 
