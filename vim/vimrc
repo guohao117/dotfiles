@@ -42,6 +42,8 @@ if has('nvim')
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'hrsh7th/nvim-compe'
     Plug 'L3MON4D3/LuaSnip'
+    Plug 'kyazdani42/nvim-web-devicons' " for file icons
+    Plug 'kyazdani42/nvim-tree.lua'"
 else
     Plug 'honza/vim-snippets'
     Plug 'SirVer/ultisnips'
@@ -54,6 +56,8 @@ else
     Plug 'ncm2/ncm2-ultisnips'
     Plug 'junegunn/fzf'
     Plug 'junegunn/fzf.vim'
+    Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
+    Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
 endif
 
 " widgets
@@ -126,7 +130,8 @@ augroup go
     setl noexpandtab
 augroup end
 
-if has('termguicolors') && $COLORTERM ==? "truecolor"
+if has('termguicolors')
+    " && $COLORTERM ==? "truecolor"
 set termguicolors
 endif
 
