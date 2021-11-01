@@ -43,6 +43,8 @@ if has('nvim')
     Plug 'hrsh7th/nvim-compe'
     Plug 'L3MON4D3/LuaSnip'
     Plug 'kyazdani42/nvim-web-devicons' " for file icons
+    Plug 'ryanoasis/vim-devicons'
+    Plug 'hoob3rt/lualine.nvim'
     Plug 'kyazdani42/nvim-tree.lua'"
 else
     Plug 'honza/vim-snippets'
@@ -58,11 +60,11 @@ else
     Plug 'junegunn/fzf.vim'
     Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
     Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
+    Plug 'itchyny/lightline.vim'
 endif
 
 " widgets
 Plug 'liuchengxu/vista.vim'
-Plug 'itchyny/lightline.vim'
 Plug 'airblade/vim-gitgutter'
 
 " colorschemes
@@ -133,16 +135,22 @@ if has('termguicolors')
 set termguicolors
 endif
 
-let g:lightline = {
-      \ 'colorscheme': 'dracula',
-      \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'readonly', 'filename', 'modified', 'method' ] ]
-      \ },
-      \ 'component_function': {
-      \   'method': 'nvim_treesitter#statusline'
-      \ },
-      \ }
+function! SetStatusLine()
+    if has('nvim')
+        let g:lightline = {
+                    \ 'colorscheme': 'dracula',
+                    \ 'active': {
+                    \   'left': [ [ 'mode', 'paste' ],
+                    \             [ 'readonly', 'filename', 'modified', 'method' ] ]
+                    \ },
+                    \ 'component_function': {
+                    \   'method': 'nvim_treesitter#statusline'
+                    \ },
+                    \ }
+    else
+    endif
+endfunction
+
 
 function! SetColorSchemeDeferred(timer)
     " if &bg ==? "dark"
@@ -160,9 +168,9 @@ augroup TUI_Enter
 augroup END
 
 function! UpdateLightline()
-    execute 'source' globpath(&rtp, printf('autoload/lightline/colorscheme/%s.vim', g:lightline['colorscheme']))
-    call lightline#colorscheme()
-    call lightline#update()
+    " execute 'source' globpath(&rtp, printf('autoload/lightline/colorscheme/%s.vim', g:lightline['colorscheme']))
+    " call lightline#colorscheme()
+    " call lightline#update()
 endfunction
 
 
@@ -282,6 +290,11 @@ if vim.call('has', 'nvim') == 1 then
         enable = true,
       },
     }
+require'lualine'.setup {
+    options = {theme = 'dracula'},
+    sections = {lualine_c = {'filename', 'nvim_treesitter#statusline'}},
+    }
+require'nvim-tree'.setup()
 end
 
 EOF
