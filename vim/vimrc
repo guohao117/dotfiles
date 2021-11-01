@@ -16,7 +16,7 @@ call plug#begin(plugdata)
 
 " 3rd utilities
 Plug 'tpope/vim-fugitive'
-Plug 'jremmen/vim-ripgrep'
+Plug 'guohao117/vim-ripgrep'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
 " editing plugins
@@ -61,8 +61,6 @@ else
 endif
 
 " widgets
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
-Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
 Plug 'liuchengxu/vista.vim'
 Plug 'itchyny/lightline.vim'
 Plug 'airblade/vim-gitgutter'
