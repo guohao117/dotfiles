@@ -12,7 +12,7 @@ local function config_nvim_lsp(cb_init)
 		}
     nvim_lsp.gopls.setup{ init_options = { usePlaceholders = true }; capabilities = capabilities; on_attach = cb_init }
     nvim_lsp.rust_analyzer.setup{ capabilities = capabilities, capabilities = capabilities; on_attach = cb_init }
-    nvim_lsp.jedi_language_server.setup{ capabilities = capabilities; on_attach = cb_init }
+    nvim_lsp.pyright.setup{ capabilities = capabilities; on_attach = cb_init }
     if vim.call('has', 'mac') == 1 then
         nvim_lsp.clangd.setup{ cmd = {"/usr/local/opt/llvm/bin/clangd", "--background-index"}; capabilities = capabilities; on_attach = cb_init }
     else

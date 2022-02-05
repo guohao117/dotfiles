@@ -1,24 +1,10 @@
-" Plugins {{{1 "
-if has('nvim')
-    let plugdata = stdpath('data') . '/plugged'
-else
-    let plugdata = '~/.vim' . '/plugged'
-endif
+let plugdata = stdpath('data') . '/plugged'
 call plug#begin(plugdata)
-" retired plugin
-" Plug 'majutsushi/tagbar'
-" Plug 'bling/vim-airline'
-" Plug 'vim-airline/vim-airline-themes'
-" Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp'}
-" Plug 'norcalli/snippets.nvim'
-" Plug 'nvim-lua/completion-nvim'
-" Plug 'steelsojka/completion-buffers'
 
 " 3rd utilities
 Plug 'tpope/vim-fugitive'
 Plug 'guohao117/vim-ripgrep'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
-
+Plug 'ellisonleao/glow.nvim'
 " editing plugins
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
@@ -28,52 +14,36 @@ Plug 'Raimondi/delimitMate'
 Plug 'tomtom/tcomment_vim'
 Plug 'mg979/vim-visual-multi', {'branch': 'master'}
 
-" langues
+" langaues
 Plug 'keith/swift.vim'
 Plug 'cespare/vim-toml'
 Plug 'rust-lang/rust.vim'
 
 " advanced plugins
 Plug 'honza/vim-snippets'
-" Plug 'rafamadriz/friendly-snippets'
-if has('nvim')
-    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-    Plug 'neovim/nvim-lspconfig'
-    Plug 'nvim-lua/popup.nvim'
-    Plug 'nvim-lua/plenary.nvim'
-    Plug 'nvim-telescope/telescope.nvim'
-    Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
-    Plug 'hrsh7th/cmp-nvim-lsp'
-    Plug 'hrsh7th/cmp-buffer'
-    Plug 'hrsh7th/cmp-path'
-    Plug 'hrsh7th/cmp-cmdline'
-    Plug 'hrsh7th/nvim-cmp'
-    Plug 'L3MON4D3/LuaSnip'
-    Plug 'saadparwaiz1/cmp_luasnip'
-    Plug 'kyazdani42/nvim-web-devicons' " for file icons
-    Plug 'ryanoasis/vim-devicons'
-    Plug 'hoob3rt/lualine.nvim'
-    Plug 'kyazdani42/nvim-tree.lua'"
-    " Plug 'steelsojka/pears.nvim'
-else
-    Plug 'SirVer/ultisnips'
-    Plug 'ncm2/ncm2'
-    Plug 'roxma/vim-hug-neovim-rpc'
-    Plug 'roxma/nvim-yarp'
-    Plug 'ncm2/float-preview.nvim'
-    Plug 'ncm2/ncm2-bufword'
-    Plug 'ncm2/ncm2-path'
-    Plug 'ncm2/ncm2-ultisnips'
-    Plug 'junegunn/fzf'
-    Plug 'junegunn/fzf.vim'
-    Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle'}
-    Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': 'NERDTreeToggle'}
-    Plug 'itchyny/lightline.vim'
-endif
+Plug 'rafamadriz/friendly-snippets'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'neovim/nvim-lspconfig'
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'kyazdani42/nvim-web-devicons' " for file icons
+Plug 'ryanoasis/vim-devicons'
+Plug 'akinsho/bufferline.nvim'
+Plug 'hoob3rt/lualine.nvim'
+Plug 'lewis6991/gitsigns.nvim'
 
-" widgets
+" sidebars 
 Plug 'liuchengxu/vista.vim'
-Plug 'airblade/vim-gitgutter'
+Plug 'kyazdani42/nvim-tree.lua'"
 
 " colorschemes
 Plug 'chriskempson/base16-vim'
@@ -84,10 +54,9 @@ Plug 'junegunn/seoul256.vim'
 Plug 'sonph/onehalf', {'rtp': 'vim'}
 Plug 'rakr/vim-one'
 Plug 'guohao117/vim-dracula', { 'as': 'dracula' }
+Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 " Plug 'joshdick/onedark.vim'
-
 call plug#end()
-" 1}}} "
 
 filetype plugin indent on
 " ---------------
@@ -115,7 +84,10 @@ set backspace=2 " Delete everything with backspace
 set foldlevel=4
 set completeopt=noinsert,menuone,noselect
 
-au FileType make setl noexpandtab
+augroup usetab
+    au!
+    au FileType make,go setl tabstop=8 noexpandtab
+augroup end
 " augroup c
 "   au!
 "   au FileType c setl foldmethod=syntax
@@ -135,32 +107,11 @@ au FileType make setl noexpandtab
 "   au FileType python setl foldlevel=999
 " augroup END
 
-augroup go
-    au!
-    setl noexpandtab
-augroup end
 
 if has('termguicolors')
     " && $COLORTERM ==? "truecolor"
 set termguicolors
 endif
-
-function! SetStatusLine()
-    if has('nvim')
-        let g:lightline = {
-                    \ 'colorscheme': 'dracula',
-                    \ 'active': {
-                    \   'left': [ [ 'mode', 'paste' ],
-                    \             [ 'readonly', 'filename', 'modified', 'method' ] ]
-                    \ },
-                    \ 'component_function': {
-                    \   'method': 'nvim_treesitter#statusline'
-                    \ },
-                    \ }
-    else
-    endif
-endfunction
-
 
 function! SetColorSchemeDeferred(timer)
     " if &bg ==? "dark"
@@ -169,7 +120,6 @@ function! SetColorSchemeDeferred(timer)
     "     colorscheme onehalflight
     " endif
     colorscheme dracula
-    call UpdateLightline()
 endfunction
 
 augroup TUI_Enter
@@ -177,23 +127,15 @@ augroup TUI_Enter
     autocmd VimEnter * ++nested call timer_start(50, 'SetColorSchemeDeferred', {'repeat': 1})
 augroup END
 
-function! UpdateLightline()
-    " execute 'source' globpath(&rtp, printf('autoload/lightline/colorscheme/%s.vim', g:lightline['colorscheme']))
-    " call lightline#colorscheme()
-    " call lightline#update()
-endfunction
-
-
-augroup UI
-    au!
-    autocmd OptionSet background call UpdateLightline()
-augroup END
+" augroup UI
+"     au!
+"     autocmd OptionSet background call UpdateLightline()
+" augroup END
 
 if !empty($TMUX)
     set bg=dark
 endif
 
-if has('nvim')
 lua << EOF
     require'lsp'.setup()
     local lang_list = {
@@ -221,17 +163,20 @@ lua << EOF
         enable = true,
       },
     }
+    vim.o.foldmethod='expr'
+    vim.o.foldexpr='nvim_treesitter#foldexpr()'
     -- lualine
     require'lualine'.setup {
         options = {theme = 'dracula'},
         sections = {lualine_c = {'filename', 'nvim_treesitter#statusline'}},
         }
     require'nvim-tree'.setup()
-      local cmp = require'cmp'
 
     -- nvim-cmp
     local cmp = require'cmp'
     local luasnip = require'luasnip'
+    local mytab = require'tab'
+    require("luasnip.loaders.from_vscode").lazy_load()
     cmp.setup({
     snippet = {
         expand = function(args)
@@ -245,10 +190,12 @@ lua << EOF
         { name = 'buffer' },
     }),
     mapping = {
-        ['<CR>'] = cmp.mapping.confirm({ select = false }),
+        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+        ["<Tab>"] = cmp.mapping(mytab.smart_tab, {"i", "s"}),
+        ["<S-Tab>"] = cmp.mapping(mytab.smart_s_tab, {"i", "s"}),
         },
     experimental = {
-        native_menu = true,
+        -- native_menu = true,
         },
     })
 
@@ -279,24 +226,9 @@ lua << EOF
         }
     }
     require('telescope').load_extension('fzf')
+    require("bufferline").setup{}
+	require('gitsigns').setup()
 EOF
-set foldmethod=expr
-set foldexpr=nvim_treesitter#foldexpr()
-endif
-
-if !has('nvim')
-    autocmd BufEnter * call ncm2#enable_for_buffer()
-    " We don't really want UltiSnips to map these two, but there's no option for
-    " that so just make it map them to a <Plug> key.
-    let g:UltiSnipsExpandTrigger       = "<Plug>(ultisnips_expand_or_jump)"
-    let g:UltiSnipsJumpForwardTrigger  = "<Plug>(ultisnips_expand_or_jump)"
-
-    " Let UltiSnips bind the jump backward trigger as there's nothing special
-    " about it.
-    let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
-    let g:UltiSnipsRemoveSelectModeMappings = 0
-    let g:UltiSnipsEditSplit = 'context'
-endif
 
 " Try expanding snippet or jumping with UltiSnips/delimitMate and return <Tab> if nothing
 " worked.
@@ -311,7 +243,7 @@ function! UniversalJumpForwardOrTab()
 endfunction
 
 function! MyExpandOr(...)
-    if !pumvisible()
+    if !CmpVisiable()
         call call('feedkeys', a:000)
         return ""
     endif
@@ -323,28 +255,23 @@ function! MyExpandOr(...)
     endif
 endfunction
 
+function! CmpVisiable()
+    return v:lua.require'cmp'.visible()
+endfunction
+
 " what i expected is <CR> only try to expand when popup menu is visible
 " otherwise a newline is inserted.
 " when popup menu show up, if no item selected, insert <CR>. otherwise insert
 " selected item and expand it if possible. I don't want to insert <CR> if the
 " slelected item can't be expanded, because <CR> just represent selection not
 " a insertion.
-if has('nvim')
-    inoremap <silent> <Plug>(my_jump_forward) <C-r>=UniversalJumpForwardOrTab()<CR>
-    inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : MyExpandOr("\<Plug>(my_jump_forward)")
-    inoremap <silent> <expr> <S-Tab> pmvisable() ? "\<C-p>" : "\<S-Tab>"
-    inoremap <silent> <expr> <CR> pumvisible() ? MyExpandOr(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
+    " i_CTRL-R_= insert expr result
+    " inoremap <silent> <Plug>(my_jump_forward) <C-r>=UniversalJumpForwardOrTab()<CR>
+    " imap <silent> <expr> <Tab> CmpVisiable() ? "\<C-n>" : MyExpandOr("\<Plug>(my_jump_forward)")
+    " imap <silent> <expr> <S-Tab> CmpVisiable() ? "\<C-p>" : "\<S-Tab>"
+    " inoremap <silent> <expr> <CR> CmpVisiable() ? MyExpandOr(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
     " inoremap <silent><expr> <C-e>     compe#close('<C-e>')
     " inoremap <silent><expr> <CR>      compe#confirm('<CR>')
-else
-    inoremap <silent> <expr> <Tab> pumvisible() ? "\<C-n>" : ncm2_ultisnips#expand_or("\<Plug>(ultisnips_try_jump_forwards)")
-    " i_CTRL-R_= insert expr result
-    inoremap <silent> <Plug>(ultisnips_try_jump_forwards) <C-r>=UniversalJumpForwardOrTab()<CR>
-    inoremap <silent> <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-    inoremap <silent> <expr> <CR> pumvisible() ? ncm2_ultisnips#expand_or(empty(v:completed_item) ? "<CR>" : "", 'n') : "\<CR>"
-    " Select mode mapping for jumping forward with <Tab>.
-    snoremap <silent> <Tab> <Esc>:call UltiSnips#ExpandSnippetOrJump()<cr>
-endif
 
 let g:vista#renderer#enable_icon = 0
 
