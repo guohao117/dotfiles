@@ -23,7 +23,7 @@ end
 function M.setup()
     config_nvim_lsp(
         function(client, result)
-            local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+            local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(0, ...) end
             -- require'ncm2'.register_lsp_source(client, result)
             local opts = { noremap=true, silent=true }
             buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
