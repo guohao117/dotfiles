@@ -5,6 +5,7 @@ call plug#begin(plugdata)
 Plug 'tpope/vim-fugitive'
 Plug 'guohao117/vim-ripgrep'
 Plug 'ellisonleao/glow.nvim'
+
 " editing plugins
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
@@ -32,6 +33,8 @@ Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
+Plug 'zbirenbaum/copilot.lua'
+Plug 'zbirenbaum/copilot-cmp'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
@@ -44,6 +47,9 @@ Plug 'lewis6991/gitsigns.nvim'
 " sidebars 
 Plug 'liuchengxu/vista.vim'
 Plug 'kyazdani42/nvim-tree.lua'"
+
+" note taking
+" Plug 'nvim-neorg/neorg'
 
 " colorschemes
 Plug 'chriskempson/base16-vim'
@@ -119,7 +125,7 @@ function! SetColorSchemeDeferred(timer)
     " else
     "     colorscheme onehalflight
     " endif
-    colorscheme dracula
+    colorscheme one
 endfunction
 
 augroup TUI_Enter
@@ -132,12 +138,14 @@ augroup END
 "     autocmd OptionSet background call UpdateLightline()
 " augroup END
 
-if !empty($TMUX)
-    set bg=dark
-endif
+" if !empty($TMUX)
+"     set bg=dark
+" endif
 
 lua << EOF
     require'lsp'.setup()
+    local parser_configs = require('nvim-treesitter.parsers').get_parser_configs()
+
     local lang_list = {
         'clojure',
         'rust',
@@ -167,7 +175,7 @@ lua << EOF
     vim.o.foldexpr='nvim_treesitter#foldexpr()'
     -- lualine
     require'lualine'.setup {
-        options = {theme = 'dracula'},
+        options = {theme = 'auto'},
         sections = {lualine_c = {'filename', 'nvim_treesitter#statusline'}},
         }
     require'nvim-tree'.setup()
@@ -177,6 +185,11 @@ lua << EOF
     local luasnip = require'luasnip'
     local mytab = require'tab'
     require("luasnip.loaders.from_vscode").lazy_load()
+    require("copilot").setup()
+    require("copilot_cmp").setup({
+        suggestion = { enabled = false },
+        panel = { enabled = false },
+    })
     cmp.setup({
     snippet = {
         expand = function(args)
@@ -184,9 +197,10 @@ lua << EOF
         end,
     },
     sources = cmp.config.sources({
+        { name = 'copilot'},
         { name = 'nvim_lsp' },
         { name = 'luasnip' }, -- For luasnip users.
-    }, {
+        }, {
         { name = 'buffer' },
     }),
     mapping = {
@@ -226,7 +240,7 @@ lua << EOF
         }
     }
     require('telescope').load_extension('fzf')
-    require("bufferline").setup{}
+    require("bufferline").setup{ options = { separator_style = "slant" } }
 	require('gitsigns').setup()
 EOF
 
@@ -287,10 +301,13 @@ endfunction
 
 nnoremap <silent> <expr> <leader>m VistaLSPorCtags()
 " nnoremap <silent> <C-p> <Esc>:Files<cr>
-nnoremap <leader>ff <cmd>Telescope find_files<cr>
-nnoremap <leader>fg <cmd>Telescope live_grep<cr>
-nnoremap <leader>fb <cmd>Telescope buffers<cr>
-nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+" nnoremap <leader>ff <cmd>Telescope find_files<cr>
+" nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+" nnoremap <leader>fb <cmd>Telescope buffers<cr>
+" nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+nnoremap <space>f <cmd>Telescope find_files<cr>
+nnoremap <space>b <cmd>Telescope buffers<cr>
+nnoremap <space>s <cmd>Telescope lsp_document_symbols<cr>
 
 if has('win32')
     nnoremap <C-z> <Nop>
