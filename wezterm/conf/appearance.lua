@@ -41,17 +41,21 @@ function M.setup()
     end
     config.window_background_opacity = 0.95
     config.hide_tab_bar_if_only_one_tab = true
+    config.use_fancy_tab_bar = false
 
     -- 实时响应系统主题变化
     wezterm.on('window-config-reloaded', function(window, pane)
         local new_appearance = get_appearance()
         local overrides = window:get_config_overrides() or {}
-        if new_appearance:find("Dark") then
-            overrides.color_scheme = "Tokyo Night"
-        else
-            overrides.color_scheme = "Tokyo Night Day"
+        -- 只有当用户没有手动设置 color_scheme 时才自动切换
+        if not overrides.color_scheme then
+            if new_appearance:find("Dark") then
+                overrides.color_scheme = "Tokyo Night"
+            else
+                overrides.color_scheme = "Tokyo Night Day"
+            end
+            window:set_config_overrides(overrides)
         end
-        window:set_config_overrides(overrides)
     end)
 
     return config
