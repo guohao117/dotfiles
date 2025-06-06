@@ -13,6 +13,17 @@ function M.setup()
         return "Light"
     end
 
+    -- 检测操作系统
+    local function detect_os()
+        if wezterm.target_triple:find("windows") then
+            return "Windows"
+        elseif wezterm.target_triple:find("apple") or wezterm.target_triple:find("darwin") then
+            return "macOS"
+        else
+            return "Linux"
+        end
+    end
+
     -- 根据系统主题自动切换配色
     local appearance = get_appearance()
     if appearance:find("Dark") then
@@ -22,7 +33,12 @@ function M.setup()
     end
 
     -- 其他外观设置
-    config.font_size = 12.0
+    local base_font_size = 12.0
+    if detect_os() == "macOS" then
+        config.font_size = base_font_size + 2
+    else
+        config.font_size = base_font_size
+    end
     config.window_background_opacity = 0.95
     config.hide_tab_bar_if_only_one_tab = true
 
