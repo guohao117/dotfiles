@@ -1,4 +1,3 @@
-local wezterm = require 'wezterm'
 local os_utils = require("utils.os")
 
 local configs = {

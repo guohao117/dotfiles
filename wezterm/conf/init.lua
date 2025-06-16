@@ -5,6 +5,7 @@ local default_plugins = {
   launch = true,
   keymap = true,
   appearance = true,
+  ime = true,
   -- 你可以在这里添加更多 plugin
 }
 
@@ -12,12 +13,20 @@ local plugin_modules = {
   launch = "conf.launch",
   keymap = "conf.keymap",
   appearance = "conf.appearance",
-  -- 你可以在这里添加更多模块
+  ime = "conf.ime",
+  -- You can add more modules here
 }
 
 local function merge_table(dst, src)
   for k, v in pairs(src) do
-    dst[k] = v
+    if k == "keys" and type(dst[k]) == "table" and type(v) == "table" then
+      -- Merge key bindings instead of overwriting
+      for _, key in ipairs(v) do
+        table.insert(dst[k], key)
+      end
+    else
+      dst[k] = v
+    end
   end
 end
 
@@ -42,6 +51,9 @@ local function init(opts)
   end
 
   local config = wezterm.config_builder()
+
+  -- Initialize keys array
+  config.keys = config.keys or {}
 
   for plugin, modname in pairs(plugin_modules) do
     if plugins[plugin] then
