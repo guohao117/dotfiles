@@ -1,4 +1,5 @@
 local wezterm = require('wezterm')
+local os_utils = require("utils.os")
 
 local M = {}
 
@@ -15,13 +16,7 @@ function M.setup()
 
   -- 检测操作系统
   local function detect_os()
-    if wezterm.target_triple:find("windows") then
-      return "Windows"
-    elseif wezterm.target_triple:find("apple") or wezterm.target_triple:find("darwin") then
-      return "macOS"
-    else
-      return "Linux"
-    end
+    return os_utils.detect_os()
   end
 
   -- 根据系统主题自动切换配色

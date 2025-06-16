@@ -1,5 +1,8 @@
 local wezterm = require("wezterm")
 
+-- Force log output for debugging
+wezterm.log_info("[CONFIG] Configuration loading started...")
+
 -- 默认 plugin 开关
 local default_plugins = {
   launch = true,
@@ -57,12 +60,16 @@ local function init(opts)
 
   for plugin, modname in pairs(plugin_modules) do
     if plugins[plugin] then
-      local ok, mod = pcall(require, modname)
-      if ok and type(mod) == "table" and type(mod.setup) == "function" then
-        local conf = mod.setup(opts)
+      local ok, mod_or_err = pcall(require, modname)
+      if ok and type(mod_or_err) == "table" and type(mod_or_err.setup) == "function" then
+        wezterm.log_info(string.format("[CONFIG] Loaded module: %s", modname))
+        local conf = mod_or_err.setup(opts)
         if type(conf) == "table" then
           merge_table(config, conf)
         end
+      else
+        local err_msg = ok and "Module does not return a table with setup function" or tostring(mod_or_err)
+        wezterm.log_error(string.format("[CONFIG] Failed to load module: %s, error: %s", modname, err_msg))
       end
     end
   end
