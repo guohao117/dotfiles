@@ -12,7 +12,7 @@ function M.setup()
           local overrides = window:get_config_overrides() or {}
           overrides.color_scheme = "Tokyo Night"
           window:set_config_overrides(overrides)
-        end)
+        end),
       },
       {
         key = "l",
@@ -21,9 +21,9 @@ function M.setup()
           local overrides = window:get_config_overrides() or {}
           overrides.color_scheme = "Tokyo Night Day"
           window:set_config_overrides(overrides)
-        end)
-      }
-    }
+        end),
+      },
+    },
   }
 end
 

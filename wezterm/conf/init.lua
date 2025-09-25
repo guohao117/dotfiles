@@ -68,8 +68,11 @@ local function init(opts)
           merge_table(config, conf)
         end
       else
-        local err_msg = ok and "Module does not return a table with setup function" or tostring(mod_or_err)
-        wezterm.log_error(string.format("[CONFIG] Failed to load module: %s, error: %s", modname, err_msg))
+        local err_msg = ok and "Module does not return a table with setup function"
+          or tostring(mod_or_err)
+        wezterm.log_error(
+          string.format("[CONFIG] Failed to load module: %s, error: %s", modname, err_msg)
+        )
       end
     end
   end
@@ -78,5 +81,5 @@ local function init(opts)
 end
 
 return {
-  init = init
+  init = init,
 }

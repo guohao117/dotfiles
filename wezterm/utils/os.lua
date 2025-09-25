@@ -1,4 +1,4 @@
-local wezterm = require 'wezterm'
+local wezterm = require("wezterm")
 
 local function detect_os()
   if wezterm.target_triple:find("windows") then
