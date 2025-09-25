@@ -1,0 +1,57 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+# Lua files - 2 spaces (community standard, works with StyLua)
+[*.lua]
+indent_style = space
+indent_size = 2
+
+# Vim script files - 2 spaces
+[*.vim]
+indent_style = space
+indent_size = 2
+
+# Shell scripts - 2 spaces
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Python files - 4 spaces (PEP 8)
+[*.py]
+indent_style = space
+indent_size = 4
+
+# YAML files - 2 spaces
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JSON files - 2 spaces
+[*.json]
+indent_style = space
+indent_size = 2
+
+# TOML files - 2 spaces
+[*.toml]
+indent_style = space
+indent_size = 2
+
+# Markdown files - 2 spaces, allow trailing whitespace (for line breaks)
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# JavaScript/TypeScript files - 2 spaces
+[*.{js,ts}]
+indent_style = space
+indent_size = 2
