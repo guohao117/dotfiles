@@ -16,31 +16,5 @@ return {
       -- LazyVim 风格的加载通知
       vim.notify("WezTerm IME Helper loaded", vim.log.levels.INFO, { title = "Plugin" })
     end,
-    keys = {
-      -- 使用 LazyVim 的 UI 键位前缀 <leader>u
-      {
-        "<leader>uie",
-        function()
-          require("ime-helper").switch_to_en()
-          vim.notify("Switched to English IME", vim.log.levels.INFO, { title = "IME" })
-        end,
-        desc = "IME: Switch to English",
-      },
-      {
-        "<leader>uii",
-        function()
-          require("ime-helper").switch_to_ime()
-          vim.notify("Switched to Input Method", vim.log.levels.INFO, { title = "IME" })
-        end,
-        desc = "IME: Switch to Input Method",
-      },
-      {
-        "<leader>uis",
-        function()
-          require("ime-helper").status()
-        end,
-        desc = "IME: Show Status",
-      },
-    },
   },
 }
