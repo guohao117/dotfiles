@@ -3,12 +3,12 @@ local wezterm = require("wezterm")
 -- Force log output for debugging
 wezterm.log_info("[CONFIG] Configuration loading started...")
 
--- 默认 plugin 开关
+-- 默认 plugin 配置
 local default_plugins = {
-  launch = true,
-  keymap = true,
-  appearance = true,
-  ime = true,
+  launch = { enabled = true, opts = {} },
+  keymap = { enabled = true, opts = {} },
+  appearance = { enabled = true, opts = {} },
+  ime = { enabled = true, opts = {} },
   -- 你可以在这里添加更多 plugin
 }
 
@@ -19,6 +19,13 @@ local plugin_modules = {
   ime = "conf.ime",
   -- You can add more modules here
 }
+
+local function merge_plugin_config(default, user)
+  return {
+    enabled = user.enabled ~= nil and user.enabled or default.enabled,
+    opts = user.opts or default.opts or {}
+  }
+end
 
 local function merge_table(dst, src)
   for k, v in pairs(src) do
@@ -34,23 +41,14 @@ local function merge_table(dst, src)
 end
 
 --- 初始化 wezterm 配置
--- @param opts table 可选参数，控制 plugin 开关，如 {plugins={appearance=false}}
+-- @param opts table 可选参数，如 {appearance={enabled=true, opts={auto_switch_enabled=false}}}
 -- @return table wezterm config 对象
 local function init(opts)
   opts = opts or {}
   local plugins = {}
-  if opts.plugins then
-    for k, v in pairs(default_plugins) do
-      if opts.plugins[k] ~= nil then
-        plugins[k] = opts.plugins[k]
-      else
-        plugins[k] = v
-      end
-    end
-  else
-    for k, v in pairs(default_plugins) do
-      plugins[k] = v
-    end
+  for k, v in pairs(default_plugins) do
+    local user_config = opts[k] or {}
+    plugins[k] = merge_plugin_config(v, user_config)
   end
 
   local config = wezterm.config_builder()
@@ -58,21 +56,25 @@ local function init(opts)
   -- Initialize keys array
   config.keys = config.keys or {}
 
-  for plugin, modname in pairs(plugin_modules) do
-    if plugins[plugin] then
-      local ok, mod_or_err = pcall(require, modname)
-      if ok and type(mod_or_err) == "table" and type(mod_or_err.setup) == "function" then
-        wezterm.log_info(string.format("[CONFIG] Loaded module: %s", modname))
-        local conf = mod_or_err.setup(opts)
-        if type(conf) == "table" then
-          merge_table(config, conf)
+  for plugin, config_table in pairs(plugins) do
+    if config_table.enabled then
+      local modname = plugin_modules[plugin]
+      if modname then
+        local ok, mod_or_err = pcall(require, modname)
+        if ok and type(mod_or_err) == "table" and type(mod_or_err.setup) == "function" then
+          wezterm.log_info(string.format("[CONFIG] Loaded module: %s", modname))
+          local plugin_opts = config_table.opts
+          local conf = mod_or_err.setup(plugin_opts)
+          if type(conf) == "table" then
+            merge_table(config, conf)
+          end
+        else
+          local err_msg = ok and "Module does not return a table with setup function"
+              or tostring(mod_or_err)
+          wezterm.log_error(
+            string.format("[CONFIG] Failed to load module: %s, error: %s", modname, err_msg)
+          )
         end
-      else
-        local err_msg = ok and "Module does not return a table with setup function"
-          or tostring(mod_or_err)
-        wezterm.log_error(
-          string.format("[CONFIG] Failed to load module: %s, error: %s", modname, err_msg)
-        )
       end
     end
   end

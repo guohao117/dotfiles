@@ -2,7 +2,7 @@ local wezterm = require("wezterm")
 
 local M = {}
 
-function M.setup()
+function M.setup(opts)
   return {
     keys = {
       {

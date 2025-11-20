@@ -32,8 +32,7 @@ end
 
 function M.setup(opts)
   opts = opts or {}
-  local plugin_opts = opts.appearance or {}
-  local auto_switch_enabled = plugin_opts.auto_switch_enabled
+  local auto_switch_enabled = opts.auto_switch_enabled
   if auto_switch_enabled == nil then
     auto_switch_enabled = true
   end

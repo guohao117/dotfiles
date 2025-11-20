@@ -38,7 +38,7 @@ local configs = {
   },
 }
 
-local function setup()
+local function setup(opts)
   local os = os_utils.detect_os()
   return configs[os]
 end
