@@ -11,8 +11,8 @@ local function get_appearance()
   return "Light"
 end
 
--- Toggle light/dark scheme for the window
-function M.toggle_light_dark(window, pane)
+-- Register as a custom event handler
+wezterm.on("toggle-light-dark", function(window, pane)
   if not window then return end
   local overrides = window:get_config_overrides() or {}
 
@@ -28,7 +28,7 @@ function M.toggle_light_dark(window, pane)
     window:set_config_overrides(overrides)
     wezterm.log_info("Toggle: set to " .. target .. ", disabled auto switching")
   end
-end
+end)
 
 function M.setup(opts)
   opts = opts or {}
@@ -77,6 +77,17 @@ function M.setup(opts)
   end)
 
   return config
+end
+
+-- 返回用于 command palette 的条目列表
+function M.get_command_palette_entries()
+  return {
+    {
+      brief = "Toggle Light/Dark Theme",
+      icon = "md_theme_light_dark",
+      action = wezterm.action.EmitEvent("toggle-light-dark"),
+    },
+  }
 end
 
 return M
