@@ -1,7 +1,7 @@
 local wezterm = require("wezterm")
 
 -- 加载插件 - 临时使用本地路径测试
-local ime_plugin = wezterm.plugin.require("file:///Users/guohao/Workspaces/wezterm-ime-helper")
+local ime_plugin = wezterm.plugin.require("https://github.com/guohao117/wezterm-ime-helper")
 
 local M = {}
 
