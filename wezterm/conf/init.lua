@@ -57,6 +57,7 @@ local default_plugins = {
   keymap = { enabled = true, opts = {}, enable_command_palette = true },
   appearance = { enabled = true, opts = {}, enable_command_palette = true },
   ime = { enabled = true, opts = {}, enable_command_palette = true },
+  ssh = { enabled = true, opts = {}, enable_command_palette = false },
   -- 你可以在这里添加更多 plugin
 }
 
