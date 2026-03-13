@@ -59,6 +59,7 @@ local default_plugins = {
   ime = { enabled = true, opts = {}, enable_command_palette = true },
   ssh = { enabled = true, opts = {}, enable_command_palette = false },
   -- 你可以在这里添加更多 plugin
+  password = { enabled = true, opts = {}, enable_command_palette = true },
 }
 
 -- Extend package.path to include conf directory for plugin loading
@@ -69,7 +70,7 @@ local function merge_plugin_config(default, user)
     enabled = user.enabled ~= nil and user.enabled or default.enabled,
     opts = user.opts or default.opts or {},
     enable_command_palette = user.enable_command_palette ~= nil and user.enable_command_palette
-        or (default.enable_command_palette ~= nil and default.enable_command_palette or true)
+      or (default.enable_command_palette ~= nil and default.enable_command_palette or true),
   }
 end
 
@@ -102,8 +103,8 @@ local function init(opts)
   -- Initialize keys array
   config.keys = config.keys or {}
 
-  -- 存储所有已加载的模块，用于后续收集 command palette entries
-  local loaded_modules = {}
+  -- 在初始化时就收集所有 command palette entries（缓存），而不是每次事件触发时重新计算
+  local cached_command_palette_entries = {}
 
   for plugin, config_table in pairs(plugins) do
     if config_table.enabled then
@@ -115,11 +116,30 @@ local function init(opts)
         if type(conf) == "table" then
           merge_table(config, conf)
         end
-        -- 保存已加载的模块引用
-        loaded_modules[plugin] = mod_or_err
+
+        -- 在初始化时收集该模块的 command palette entries
+        if config_table.enable_command_palette and type(mod_or_err.get_command_palette_entries) == "function" then
+          local ok_entries, module_entries = pcall(mod_or_err.get_command_palette_entries, plugin_opts)
+          if ok_entries and type(module_entries) == "table" then
+            wezterm.log_info(
+              string.format("[Command Palette] Loaded entries from conf.%s", plugin)
+            )
+            for _, entry in ipairs(module_entries) do
+              table.insert(cached_command_palette_entries, entry)
+            end
+          elseif not ok_entries then
+            wezterm.log_error(
+              string.format(
+                "[Command Palette] Failed to get entries from conf.%s: %s",
+                plugin,
+                tostring(module_entries)
+              )
+            )
+          end
+        end
       else
         local err_msg = ok and "Module does not return a table with setup function"
-            or tostring(mod_or_err)
+          or tostring(mod_or_err)
         wezterm.log_error(
           string.format("[CONFIG] Failed to load module: %s, error: %s", "conf." .. plugin, err_msg)
         )
@@ -127,38 +147,9 @@ local function init(opts)
     end
   end
 
-  -- 统一注册 command palette，使用反射机制收集所有模块的条目
+  -- 直接返回缓存的 entries，避免每次事件触发时都重新计算
   wezterm.on("augment-command-palette", function(window, pane)
-    local entries = {}
-
-    -- 遍历所有已加载的模块
-    for plugin_name, module in pairs(loaded_modules) do
-      -- 检查该模块是否启用了 command palette
-      local plugin_config = plugins[plugin_name]
-      if plugin_config and plugin_config.enable_command_palette then
-        -- 检查模块是否有 get_command_palette_entries 方法
-        if type(module.get_command_palette_entries) == "function" then
-          -- 使用 pcall 防止某个模块出错影响其他模块
-          local ok, module_entries = pcall(module.get_command_palette_entries)
-          if ok and type(module_entries) == "table" then
-            wezterm.log_info(string.format("[Command Palette] Loading entries from conf.%s", plugin_name))
-            for _, entry in ipairs(module_entries) do
-              table.insert(entries, entry)
-            end
-          elseif not ok then
-            wezterm.log_error(
-              string.format(
-                "[Command Palette] Failed to get entries from conf.%s: %s",
-                plugin_name,
-                tostring(module_entries)
-              )
-            )
-          end
-        end
-      end
-    end
-
-    return entries
+    return cached_command_palette_entries
   end)
 
   return config
