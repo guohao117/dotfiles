@@ -3,6 +3,12 @@ local os_utils = require("utils.os")
 
 local M = {}
 
+-- Define color-scheme names in one place so they can be changed easily.
+-- Keeping them as local constants ensures all logic that compares by name
+-- stays correct even if you rename the schemes later.
+local SCHEME_DARK = "PencilDark"
+local SCHEME_LIGHT = "PencilLight"
+
 -- 获取系统外观
 local function get_appearance()
   if wezterm.gui then
@@ -11,24 +17,31 @@ local function get_appearance()
   return "Light"
 end
 
--- Register as a custom event handler
-wezterm.on("toggle-light-dark", function(window, pane)
-  if not window then return end
-  local overrides = window:get_config_overrides() or {}
+-- Internal helpers and state
+local _handlers_registered = false
 
-  if overrides.color_scheme then
-    -- Clear overrides to re-enable auto switching
-    window:set_config_overrides({})
-    wezterm.log_info("Toggle: cleared overrides, re-enabled auto switching")
-  else
-    -- Set to opposite of current effective scheme
-    local current = overrides.color_scheme or (get_appearance():find("Dark") and "Tokyo Night" or "Tokyo Night Day")
-    local target = (current == "Tokyo Night") and "Tokyo Night Day" or "Tokyo Night"
-    overrides.color_scheme = target
-    window:set_config_overrides(overrides)
-    wezterm.log_info("Toggle: set to " .. target .. ", disabled auto switching")
+local function is_dark_appearance(appearance)
+  if not appearance then
+    return false
   end
-end)
+  return appearance:lower():find("dark") ~= nil
+end
+
+local function opposite_scheme(scheme)
+  if scheme == SCHEME_DARK then
+    return SCHEME_LIGHT
+  end
+  return SCHEME_DARK
+end
+
+local function effective_scheme_for_window(window)
+  local overrides = window:get_config_overrides() or {}
+  if overrides.color_scheme and overrides.color_scheme ~= "" then
+    return overrides.color_scheme, overrides
+  end
+  local appearance = get_appearance()
+  return (is_dark_appearance(appearance) and SCHEME_DARK) or SCHEME_LIGHT, overrides
+end
 
 function M.setup(opts)
   opts = opts or {}
@@ -37,14 +50,27 @@ function M.setup(opts)
     auto_switch_enabled = true
   end
 
+  -- Allow callers to override the default scheme names via opts.
+  -- Support either `opts.scheme_dark`/`opts.scheme_light` or `opts.schemes = { dark=..., light=... }`.
+  do
+    local provided_dark = (opts.schemes and opts.schemes.dark) or opts.scheme_dark
+    local provided_light = (opts.schemes and opts.schemes.light) or opts.scheme_light
+    if provided_dark then
+      SCHEME_DARK = provided_dark
+    end
+    if provided_light then
+      SCHEME_LIGHT = provided_light
+    end
+  end
+
   local config = {}
 
   -- 根据系统主题自动切换配色
   local appearance = get_appearance()
   if appearance:find("Dark") then
-    config.color_scheme = "Tokyo Night"
+    config.color_scheme = SCHEME_DARK
   else
-    config.color_scheme = "Tokyo Night Day"
+    config.color_scheme = SCHEME_LIGHT
   end
 
   -- 其他外观设置
@@ -57,24 +83,73 @@ function M.setup(opts)
   config.hide_tab_bar_if_only_one_tab = true
   config.use_fancy_tab_bar = false
 
-  -- 实时响应系统主题变化
-  wezterm.on("update-right-status", function(window, pane)
-    if not auto_switch_enabled then return end
-    local new_appearance = get_appearance()
-    local overrides = window:get_config_overrides() or {}
+  -- Event handlers (register once)
+  if not _handlers_registered then
+    -- Toggle handler: cycle auto -> dark -> light -> auto
+    wezterm.on("toggle-light-dark", function(window, pane)
+      if not window then
+        return
+      end
+      local scheme, overrides = effective_scheme_for_window(window)
+      overrides = overrides or {}
 
-    -- If overrides.color_scheme exists, assume manual control, skip auto
-    if overrides.color_scheme then return end
+      if not overrides.color_scheme or overrides.color_scheme == "" then
+        -- currently auto: set explicit opposite
+        overrides.color_scheme = opposite_scheme(scheme)
+        window:set_config_overrides(overrides)
+        wezterm.log_info("Toggle: set to " .. overrides.color_scheme .. ", disabled auto switching")
+        return
+      end
 
-    local expected_scheme = new_appearance:find("Dark") and "Tokyo Night" or "Tokyo Night Day"
-    local current_scheme = config.color_scheme
+      -- there is an explicit override; cycle through states
+      if overrides.color_scheme == SCHEME_DARK then
+        overrides.color_scheme = SCHEME_LIGHT
+        window:set_config_overrides(overrides)
+        wezterm.log_info("Toggle: switched override to " .. SCHEME_LIGHT)
+      elseif overrides.color_scheme == SCHEME_LIGHT then
+        -- clear only the color_scheme key to go back to auto
+        overrides.color_scheme = nil
+        if next(overrides) == nil then
+          window:set_config_overrides({})
+        else
+          window:set_config_overrides(overrides)
+        end
+        wezterm.log_info("Toggle: cleared override, re-enabled auto switching")
+      else
+        -- unknown override value: set to dark as a fallback
+        overrides.color_scheme = SCHEME_DARK
+        window:set_config_overrides(overrides)
+        wezterm.log_info("Toggle: set to fallback " .. SCHEME_DARK)
+      end
+    end)
 
-    if current_scheme ~= expected_scheme then
-      overrides.color_scheme = expected_scheme
-      window:set_config_overrides(overrides)
-      wezterm.log_info("Auto-applied color scheme: " .. expected_scheme)
-    end
-  end)
+    -- Auto-apply handler: respect manual overrides; otherwise apply expected scheme
+    wezterm.on("update-right-status", function(window, pane)
+      if not auto_switch_enabled then
+        return
+      end
+      if not window then
+        return
+      end
+      local new_appearance = get_appearance()
+      local expected_scheme = is_dark_appearance(new_appearance) and SCHEME_DARK or SCHEME_LIGHT
+      local current_scheme, overrides = effective_scheme_for_window(window)
+
+      -- If overrides.color_scheme exists, assume manual control, skip auto
+      if overrides and overrides.color_scheme and overrides.color_scheme ~= "" then
+        return
+      end
+
+      if current_scheme ~= expected_scheme then
+        overrides = overrides or {}
+        overrides.color_scheme = expected_scheme
+        window:set_config_overrides(overrides)
+        wezterm.log_info("Auto-applied color scheme: " .. expected_scheme)
+      end
+    end)
+
+    _handlers_registered = true
+  end
 
   return config
 end
