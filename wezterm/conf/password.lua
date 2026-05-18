@@ -27,6 +27,10 @@ local function merge_plugin_opts(opts)
     end
   end
 
+  if not merged.backend or merged.backend == "" then
+    merged.backend = "rbw"
+  end
+
   if not merged.rbw_bin or merged.rbw_bin == "" then
     merged.rbw_bin = first_existing_path({
       "/opt/homebrew/bin/rbw",
@@ -35,49 +39,34 @@ local function merge_plugin_opts(opts)
     }) or "rbw"
   end
 
+  if not merged.bw_bin or merged.bw_bin == "" then
+    merged.bw_bin = first_existing_path({
+      "/opt/homebrew/bin/bw",
+      "/usr/local/bin/bw",
+      "/usr/bin/bw",
+    }) or "bw"
+  end
+
+  if merged.backend == "bw" and (not merged.bw_session or merged.bw_session == "") then
+    merged.bw_session = os.getenv("BW_SESSION")
+  end
+
   wezterm.log_info(string.format("[password.lua] rbw_bin: %s", merged.rbw_bin))
+  wezterm.log_info(string.format("[password.lua] backend: %s", merged.backend))
+  wezterm.log_info(string.format("[password.lua] bw_bin: %s", merged.bw_bin))
 
   return merged
 end
 
 function M.setup(opts)
   opts = merge_plugin_opts(opts)
+  local config = {}
 
-  -- 调用插件的 setup
-  if plugin and plugin.setup then
-    return plugin.setup(opts)
+  if plugin and plugin.apply_to_config then
+    plugin.apply_to_config(config, opts)
   end
 
-  return {}
-end
-
-function M.get_command_palette_entries(opts)
-  opts = opts or {}
-
-  local entries = {
-    {
-      brief = opts.command_palette_password_brief or "Insert password from rbw",
-      doc = opts.command_palette_password_doc
-        or "Search your rbw vault and paste the selected password into the active pane.",
-      action = wezterm.action.EmitEvent("wez-password.rbw.open-password"),
-    },
-  }
-
-  local enable_username = opts.enable_username_command_palette
-  if enable_username == nil then
-    enable_username = true
-  end
-
-  if enable_username then
-    table.insert(entries, {
-      brief = opts.command_palette_username_brief or "Insert username from rbw",
-      doc = opts.command_palette_username_doc
-        or "Search your rbw vault and paste the selected username into the active pane.",
-      action = wezterm.action.EmitEvent("wez-password.rbw.open-username"),
-    })
-  end
-
-  return entries
+  return config
 end
 
 return M
